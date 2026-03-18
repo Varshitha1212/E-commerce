@@ -38,6 +38,7 @@ logger = logging.getLogger(__name__)
 DATA_FILE = 'ecommerce_data.csv'
 MODEL_FILE = 'churn_model.pkl'
 OUTPUTS_DIR = 'outputs'
+PORT = int(os.environ.get('PORT', 5000))
 
 os.makedirs(OUTPUTS_DIR, exist_ok=True)
 
@@ -283,5 +284,5 @@ def health():
 
 
 if __name__ == '__main__':
-    logger.info("Starting E-Commerce Analysis Web Application")
-    app.run(host='0.0.0.0', port=5000, debug=False)
+    logger.info(f"Starting E-Commerce Analysis Web Application on port {PORT}")
+    app.run(host='0.0.0.0', port=PORT, debug=False)
