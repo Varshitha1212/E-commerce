@@ -1,0 +1,11 @@
+# Deploy to Railway - Public Access
+# Run this in your project folder after installing Railway CLI
+
+[[build]]
+builder = "python-poetry"
+
+[[services]]
+type = "web"
+startCommand = "python app.py"
+port = 5000
+name = "ecommerce-platform"

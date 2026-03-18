@@ -1,0 +1,206 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>E-Commerce Analytics Dashboard</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+</head>
+<body>
+    <nav class="navbar">
+        <div class="container">
+            <h1 class="logo">📊 E-Commerce Analytics</h1>
+            <ul class="nav-menu">
+                <li><a href="#overview" class="nav-link">Overview</a></li>
+                <li><a href="#categories" class="nav-link">Categories</a></li>
+                <li><a href="#customers" class="nav-link">Customers</a></li>
+                <li><a href="#predictions" class="nav-link">Predictions</a></li>
+            </ul>
+        </div>
+    </nav>
+
+    <div class="container">
+        <!-- OVERVIEW SECTION -->
+        <section id="overview" class="section">
+            <h2>Dashboard Overview</h2>
+            
+            <div class="stats-grid">
+                <div class="stat-card">
+                    <div class="stat-icon">📦</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Records</div>
+                        <div class="stat-value">{{ stats.total_records|int|string }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">👥</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Unique Customers</div>
+                        <div class="stat-value">{{ stats.unique_customers|int|string }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">💰</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Total Revenue</div>
+                        <div class="stat-value">₹{{ "{:,.0f}".format(stats.total_revenue) }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">🛒</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Avg Order Value</div>
+                        <div class="stat-value">₹{{ "{:.2f}".format(stats.avg_order_value) }}</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">↩️</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Return Rate</div>
+                        <div class="stat-value">{{ "{:.1f}".format(stats.return_rate) }}%</div>
+                    </div>
+                </div>
+
+                <div class="stat-card">
+                    <div class="stat-icon">📱</div>
+                    <div class="stat-content">
+                        <div class="stat-label">Top Device</div>
+                        <div class="stat-value">{{ stats.top_device }}</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="info-box">
+                <strong>📅 Date Range:</strong> {{ stats.date_range.start }} to {{ stats.date_range.end }}
+            </div>
+        </section>
+
+        <!-- CATEGORIES SECTION -->
+        <section id="categories" class="section">
+            <h2>Product Category Analysis</h2>
+            
+            <div class="chart-container">
+                <canvas id="categoryChart"></canvas>
+            </div>
+
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Category</th>
+                        <th>Total Revenue</th>
+                        <th>Avg Order Value</th>
+                        <th>Order Count</th>
+                        <th>Return Rate</th>
+                    </tr>
+                </thead>
+                <tbody id="categoryTableBody">
+                    <tr><td colspan="5" class="loading">Loading...</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- CUSTOMERS SECTION -->
+        <section id="customers" class="section">
+            <h2>Customer Insights</h2>
+            
+            <div class="customer-stats">
+                <div class="insight-card">
+                    <h3>Total Customers</h3>
+                    <p class="insight-value" id="totalCustomers">-</p>
+                </div>
+                <div class="insight-card">
+                    <h3>Avg Customer Value</h3>
+                    <p class="insight-value" id="avgCustomerValue">-</p>
+                </div>
+                <div class="insight-card">
+                    <h3>Avg Orders/Customer</h3>
+                    <p class="insight-value" id="avgOrdersPerCustomer">-</p>
+                </div>
+            </div>
+
+            <h3>Top 10 Customers</h3>
+            <table class="data-table">
+                <thead>
+                    <tr>
+                        <th>Customer ID</th>
+                        <th>Total Spend</th>
+                        <th>Order Count</th>
+                        <th>Avg Order Value</th>
+                    </tr>
+                </thead>
+                <tbody id="topCustomersBody">
+                    <tr><td colspan="4" class="loading">Loading...</td></tr>
+                </tbody>
+            </table>
+        </section>
+
+        <!-- PREDICTIONS SECTION -->
+        <section id="predictions" class="section">
+            <h2>Churn Prediction</h2>
+            
+            <div class="prediction-form">
+                <h3>Predict Customer Churn Risk</h3>
+                <form id="churnForm">
+                    <div class="form-group">
+                        <label>Total Spend (₹)</label>
+                        <input type="number" id="totalSpend" placeholder="e.g., 500" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Order Count</label>
+                        <input type="number" id="orderCount" placeholder="e.g., 5" min="1" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Days Since Last Order</label>
+                        <input type="number" id="daysSinceOrder" placeholder="e.g., 30" min="0" required>
+                    </div>
+                    <div class="form-group">
+                        <label>Return Rate (%)</label>
+                        <input type="number" id="returnRate" placeholder="e.g., 10" min="0" max="100" step="0.1">
+                    </div>
+                    <div class="form-group">
+                        <label>Avg Order Value (₹)</label>
+                        <input type="number" id="avgOrderValue" placeholder="e.g., 100" min="0" step="0.01">
+                    </div>
+                    <button type="submit" class="btn-primary">Predict Churn</button>
+                </form>
+            </div>
+
+            <div id="predictionResult" class="prediction-result hidden">
+                <div class="result-card">
+                    <h3>Churn Risk Assessment</h3>
+                    <div class="churn-probability">
+                        <span class="label">Churn Probability:</span>
+                        <span class="value" id="churnProb">-</span>
+                    </div>
+                    <div class="churn-risk">
+                        <span class="label">Risk Level:</span>
+                        <span class="badge" id="churnRisk">-</span>
+                    </div>
+                    <div class="recommendation">
+                        <span class="label">Recommendation:</span>
+                        <p id="churnRecommendation">-</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- EXPORT SECTION -->
+        <section id="export" class="section">
+            <h2>Data Export</h2>
+            <button class="btn-primary" onclick="exportData()">📥 Download CSV Report</button>
+        </section>
+    </div>
+
+    <footer>
+        <p>&copy; 2026 E-Commerce Analytics Platform | Powered by Flask & Data Science</p>
+    </footer>
+
+    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+</body>
+</html>

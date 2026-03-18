@@ -1,0 +1,4 @@
+# Render.com deployment configuration
+# This makes your app publicly available to ANYONE
+
+port = 5000

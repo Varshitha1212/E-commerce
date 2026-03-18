@@ -1,0 +1,8 @@
+
+E-COMMERCE CUSTOMER BEHAVIOUR ANALYSIS — FINDINGS REPORT
+Dataset: 50,000 customers | Churn: 20.0% | Silhouette: 0.1939
+RF Precision: 1.0000 | RF Recall: 1.0000 | RF F1: 1.0000
+
+RECOMMENDATION 1 — Retain At-Risk customers (₹1,581,052 at risk)
+RECOMMENDATION 2 — Dormant win-back campaign (₹598,229 potential recovery)
+RECOMMENDATION 3 — Champion cross-category expansion (₹2,785,220 uplift)
