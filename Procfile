@@ -1,1 +1,1 @@
-web: python ecommerce_project/app.py
+web: gunicorn --chdir ecommerce_project app:app
