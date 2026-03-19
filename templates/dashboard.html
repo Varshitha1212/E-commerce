@@ -534,12 +534,6 @@
     <nav class="navbar">
         <div class="container">
             <div class="logo">📊 E-Commerce Analytics</div>
-            <ul class="nav-menu">
-                <li><a href="#" class="nav-link active" data-tab="overview">Overview</a></li>
-                <li><a href="#" class="nav-link" data-tab="categories">Categories</a></li>
-                <li><a href="#" class="nav-link" data-tab="customers">Customers</a></li>
-                <li><a href="#" class="nav-link" data-tab="export">Export</a></li>
-            </ul>
         </div>
     </nav>
 
@@ -672,8 +666,25 @@
 
                 <!-- Export Tab -->
                 <div id="export" class="tab-pane">
-                    <h2 style="margin-bottom: 2rem; font-size: 1.8rem;">📥 Export Data</h2>
+                    <h2 style="margin-bottom: 2rem; font-size: 1.8rem;">� Data Management</h2>
+                    
+                    <!-- Upload Section -->
+                    <div style="background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(139, 92, 246, 0.1)); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); margin-bottom: 2rem;">
+                        <h3 style="color: var(--dark); margin-bottom: 1rem; font-size: 1.2rem;">📤 Upload Your Data</h3>
+                        <p style="color: #6b7280; margin-bottom: 1.5rem;">Upload a CSV file with columns: customer_id, order_date, order_value, product_category</p>
+                        
+                        <div id="dropZone" style="border: 2px dashed var(--primary); border-radius: 8px; padding: 2rem; text-align: center; cursor: pointer; transition: all 0.3s ease; background: rgba(102, 126, 234, 0.05);">
+                            <i class="fas fa-cloud-upload-alt" style="font-size: 2.5rem; color: var(--primary); margin-bottom: 0.5rem;"></i>
+                            <p style="color: #6b7280; font-size: 1rem; margin: 0.5rem 0;">Drag and drop your CSV file here, or click to select</p>
+                            <input type="file" id="csvFile" accept=".csv" style="display: none;">
+                        </div>
+                        
+                        <div id="uploadStatus" style="margin-top: 1rem; display: none;"></div>
+                    </div>
+                    
+                    <!-- Export Section -->
                     <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
+                        <h3 style="color: var(--dark); margin-bottom: 1rem; font-size: 1.2rem;">📥 Export Data</h3>
                         <p style="margin-bottom: 1.5rem; color: #6b7280; font-size: 1.1rem;">Download your analytics data in CSV format for offline analysis</p>
                         <button class="btn" onclick="exportData()" style="background: linear-gradient(135deg, #10b981, #059669);">
                             <i class="fas fa-download"></i> Download CSV Report
@@ -843,6 +854,77 @@
         // Export
         function exportData() {
             window.location.href = '/api/export';
+        }
+
+        // File Upload Handling
+        const dropZone = document.getElementById('dropZone');
+        const csvFile = document.getElementById('csvFile');
+        const uploadStatus = document.getElementById('uploadStatus');
+
+        // Click to select
+        dropZone.addEventListener('click', () => csvFile.click());
+
+        // Drag and drop
+        dropZone.addEventListener('dragover', (e) => {
+            e.preventDefault();
+            dropZone.style.background = 'rgba(102, 126, 234, 0.15)';
+            dropZone.style.borderColor = '#667eea';
+        });
+
+        dropZone.addEventListener('dragleave', () => {
+            dropZone.style.background = 'rgba(102, 126, 234, 0.05)';
+            dropZone.style.borderColor = 'var(--primary)';
+        });
+
+        dropZone.addEventListener('drop', (e) => {
+            e.preventDefault();
+            const files = e.dataTransfer.files;
+            if (files.length > 0) {
+                csvFile.files = files;
+                uploadFile();
+            }
+        });
+
+        // File input change
+        csvFile.addEventListener('change', uploadFile);
+
+        function uploadFile() {
+            const file = csvFile.files[0];
+            if (!file) return;
+
+            if (!file.name.endsWith('.csv')) {
+                showUploadStatus('❌ Please select a CSV file', 'error');
+                return;
+            }
+
+            uploadStatus.style.display = 'block';
+            showUploadStatus('⏳ Uploading...', 'loading');
+
+            const formData = new FormData();
+            formData.append('file', file);
+
+            fetch('/api/upload', {
+                method: 'POST',
+                body: formData
+            })
+            .then(response => response.json())
+            .then(data => {
+                if (data.success) {
+                    showUploadStatus(`✅ ${data.message}. Page will refresh in 2 seconds...`, 'success');
+                    setTimeout(() => location.reload(), 2000);
+                } else {
+                    showUploadStatus(`❌ ${data.error}`, 'error');
+                }
+            })
+            .catch(error => {
+                showUploadStatus(`❌ ${error.message}`, 'error');
+            });
+        }
+
+        function showUploadStatus(message, type) {
+            const bgColor = type === 'success' ? 'rgba(16, 185, 129, 0.1)' : type === 'error' ? 'rgba(239, 68, 68, 0.1)' : 'rgba(102, 126, 234, 0.1)';
+            const borderColor = type === 'success' ? '#10b981' : type === 'error' ? '#ef4444' : '#667eea';
+            uploadStatus.innerHTML = `<div style="background: ${bgColor}; border: 1px solid ${borderColor}; color: var(--dark); padding: 1rem; border-radius: 8px;">${message}</div>`;
         }
     </script>
 </body>

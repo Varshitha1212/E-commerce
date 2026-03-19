@@ -10,6 +10,7 @@ import os
 import logging
 from datetime import datetime
 import io
+from werkzeug.utils import secure_filename
 
 app = Flask(__name__)
 CORS(app)
@@ -31,19 +32,30 @@ logger = logging.getLogger(__name__)
 # Config
 PORT = int(os.environ.get('PORT', 5000))
 DATA_FILE = 'ecommerce_data.csv'
+UPLOAD_FOLDER = 'uploads'
+ALLOWED_EXTENSIONS = {'csv'}
+
+# Create uploads folder if it doesn't exist
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
+app.config['MAX_CONTENT_LENGTH'] = 50 * 1024 * 1024  # 50MB max
 
 # Load data once
 df = None
+current_data_file = DATA_FILE
 
 def load_data():
-    global df
+    global df, current_data_file
     if df is None:
         try:
-            df = pd.read_csv(DATA_FILE, parse_dates=['order_date'])
-            logger.info(f"✅ Loaded {len(df):,} records")
+            df = pd.read_csv(current_data_file, parse_dates=['order_date'])
+            logger.info(f"✅ Loaded {len(df):,} records from {current_data_file}")
         except Exception as e:
             logger.error(f"❌ Error loading data: {e}")
             df = pd.DataFrame()
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
 
 # Routes
 @app.route('/')
@@ -114,6 +126,49 @@ def api_export():
         as_attachment=True,
         download_name=f"export_{datetime.now().strftime('%Y%m%d')}.csv"
     )
+
+@app.route('/api/upload', methods=['POST'])
+def api_upload():
+    global df, current_data_file
+    
+    if 'file' not in request.files:
+        return jsonify({"error": "No file provided"}), 400
+    
+    file = request.files['file']
+    
+    if file.filename == '':
+        return jsonify({"error": "No file selected"}), 400
+    
+    if not allowed_file(file.filename):
+        return jsonify({"error": "Only CSV files are allowed"}), 400
+    
+    try:
+        filename = secure_filename(f"upload_{datetime.now().strftime('%Y%m%d_%H%M%S')}.csv")
+        filepath = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(filepath)
+        
+        # Validate CSV has required columns
+        test_df = pd.read_csv(filepath, nrows=1)
+        required_cols = ['customer_id', 'order_date', 'order_value', 'product_category']
+        if not all(col in test_df.columns for col in required_cols):
+            os.remove(filepath)
+            return jsonify({"error": f"CSV must contain columns: {', '.join(required_cols)}"}), 400
+        
+        # Load the new data
+        df = pd.read_csv(filepath, parse_dates=['order_date'])
+        current_data_file = filepath
+        logger.info(f"✅ Uploaded data: {len(df):,} records")
+        
+        return jsonify({
+            "success": True,
+            "message": f"Uploaded {len(df):,} records",
+            "records": len(df),
+            "file": filename
+        }), 200
+    
+    except Exception as e:
+        logger.error(f"❌ Upload error: {e}")
+        return jsonify({"error": str(e)}), 500
 
 @app.route('/health')
 def health():
