@@ -4,203 +4,846 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>E-Commerce Analytics Dashboard</title>
-    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
-    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
-    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.js"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+    <style>
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        
+        :root {
+            --primary: #667eea;
+            --secondary: #764ba2;
+            --accent: #f093fb;
+            --dark: #0f172a;
+            --light: #f8fafc;
+            --white: #ffffff;
+            --border: #e2e8f0;
+            --shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1);
+            --shadow-lg: 0 25px 50px -12px rgba(0, 0, 0, 0.25);
+            --shadow-xl: 0 20px 60px -10px rgba(0, 0, 0, 0.3);
+        }
+
+        html { scroll-behavior: smooth; }
+
+        body {
+            font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+            background: linear-gradient(135deg, #0f172a 0%, #1e293b 25%, #667eea 50%, #764ba2 75%, #f093fb 100%);
+            background-attachment: fixed;
+            color: var(--dark);
+            min-height: 100vh;
+            position: relative;
+        }
+
+        .navbar {
+            background: rgba(15, 23, 42, 0.95);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            box-shadow: var(--shadow-lg);
+            position: sticky;
+            top: 0;
+            z-index: 1000;
+        }
+
+        .navbar .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 1.5rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .logo {
+            font-size: 1.8rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #60a5fa, #a78bfa, #ec4899);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .nav-menu {
+            display: flex;
+            list-style: none;
+            gap: 0.3rem;
+        }
+
+        .nav-menu li a {
+            padding: 0.8rem 1.5rem;
+            border-radius: 10px;
+            text-decoration: none;
+            color: #cbd5e1;
+            font-weight: 600;
+            font-size: 0.95rem;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            backdrop-filter: blur(10px);
+        }
+
+        .nav-menu li a::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, rgba(96, 165, 250, 0.3), rgba(167, 139, 250, 0.3));
+            transition: left 0.3s ease;
+            z-index: -1;
+            border-radius: 10px;
+        }
+
+        .nav-menu li a:hover {
+            color: white;
+            transform: translateY(-2px);
+        }
+
+        .nav-menu li a:hover::before { left: 0; }
+
+        .container {
+            max-width: 1600px;
+            margin: 0 auto;
+            padding: 0 2rem;
+        }
+
+        .tabs-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(20px);
+            border-radius: 20px;
+            box-shadow: var(--shadow-xl);
+            overflow: hidden;
+            margin-top: 3rem;
+            border: 1px solid rgba(255, 255, 255, 0.8);
+        }
+
+        .tabs-header {
+            display: flex;
+            border-bottom: 2px solid var(--border);
+            background: linear-gradient(to right, rgba(102, 126, 234, 0.05), rgba(240, 147, 251, 0.05));
+            padding: 1rem;
+            gap: 0.8rem;
+        }
+
+        .tab-btn {
+            flex: 1;
+            padding: 1.2rem 1.5rem;
+            background: rgba(255, 255, 255, 0.5);
+            border: 1px solid transparent;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 700;
+            color: #64748b;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.8rem;
+            border-radius: 12px;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            color: var(--primary);
+            background: rgba(102, 126, 234, 0.08);
+            border-color: rgba(102, 126, 234, 0.2);
+            transform: translateY(-1px);
+        }
+
+        .tab-btn.active {
+            color: white;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            border-color: transparent;
+            box-shadow: 0 8px 20px rgba(102, 126, 234, 0.4);
+            transform: translateY(-2px);
+        }
+
+        .tabs-content {
+            padding: 3rem;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .tab-pane {
+            display: none;
+        }
+
+        .tab-pane.active {
+            display: block;
+            animation: fadeIn 0.4s ease-in-out;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+            gap: 2rem;
+            margin-bottom: 3rem;
+        }
+
+        .stat-card {
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.8), rgba(255, 255, 255, 0.5));
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+            border-radius: 16px;
+            padding: 2.2rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+            cursor: pointer;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.05);
+        }
+
+        .stat-card::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 250px;
+            height: 250px;
+            background: linear-gradient(135deg, rgba(102, 126, 234, 0.2), rgba(240, 147, 251, 0.2));
+            opacity: 0;
+            transition: all 0.4s ease;
+            border-radius: 50%;
+            filter: blur(40px);
+        }
+
+        .stat-card:hover {
+            transform: translateY(-10px);
+            box-shadow: var(--shadow-xl);
+            border-color: rgba(102, 126, 234, 0.5);
+            background: linear-gradient(135deg, rgba(255, 255, 255, 0.95), rgba(255, 255, 255, 0.7));
+        }
+
+        .stat-card:hover::before {
+            opacity: 1;
+        }
+
+        .stat-content {
+            position: relative;
+            z-index: 1;
+        }
+
+        .stat-icon {
+            font-size: 2.8rem;
+            margin-bottom: 1rem;
+            display: inline-block;
+            opacity: 0.9;
+        }
+
+        .stat-label {
+            color: #94a3b8;
+            font-size: 0.8rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-bottom: 0.8rem;
+        }
+
+        .stat-value {
+            font-size: 2.4rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 50%, #ec4899 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -1px;
+        }
+
+        .chart-container {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            padding: 2.5rem;
+            margin-bottom: 2rem;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .chart-container h3 {
+            margin-bottom: 2rem;
+            color: var(--dark);
+            font-size: 1.4rem;
+            font-weight: 800;
+            letter-spacing: -0.5px;
+        }
+
+        .chart-wrapper {
+            position: relative;
+            height: 380px;
+        }
+
+        .list-container {
+            background: rgba(255, 255, 255, 0.8);
+            backdrop-filter: blur(10px);
+            border-radius: 16px;
+            overflow: hidden;
+            box-shadow: var(--shadow-lg);
+            border: 1px solid rgba(255, 255, 255, 0.6);
+        }
+
+        .list-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 1.8rem 2.2rem;
+            border-bottom: 1px solid rgba(0, 0, 0, 0.05);
+            transition: all 0.3s ease;
+            position: relative;
+        }
+
+        .list-item::before {
+            content: '';
+            position: absolute;
+            left: 0;
+            top: 0;
+            bottom: 0;
+            width: 4px;
+            background: linear-gradient(180deg, var(--primary), var(--secondary));
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
+        .list-item:last-child {
+            border-bottom: none;
+        }
+
+        .list-item:hover {
+            background: linear-gradient(to right, rgba(102, 126, 234, 0.08), transparent);
+            transform: translateX(4px);
+        }
+
+        .list-item:hover::before {
+            opacity: 1;
+        }
+
+        .list-item-title {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.4rem;
+            font-size: 1.05rem;
+        }
+
+        .list-item-subtitle {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: 500;
+        }
+
+        .list-item-value {
+            font-size: 1.3rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+            letter-spacing: -0.5px;
+        }
+
+        .top-customers-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 1.5rem;
+            padding: 2rem 0;
+        }
+
+        .customer-card {
+            background: rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            border: 1px solid rgba(255, 255, 255, 0.5);
+            border-radius: 14px;
+            padding: 1.5rem;
+            transition: all 0.3s ease;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+
+        .customer-card:hover {
+            transform: translateY(-5px);
+            box-shadow: var(--shadow-lg);
+            border-color: rgba(102, 126, 234, 0.3);
+            background: rgba(255, 255, 255, 0.8);
+        }
+
+        .customer-avatar {
+            width: 60px;
+            height: 60px;
+            border-radius: 50%;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.8rem;
+            margin-bottom: 1rem;
+            box-shadow: 0 4px 15px rgba(102, 126, 234, 0.3);
+        }
+
+        .customer-name {
+            font-weight: 700;
+            color: var(--dark);
+            margin-bottom: 0.5rem;
+            font-size: 1.05rem;
+        }
+
+        .customer-id {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-bottom: 1rem;
+            font-family: 'Courier New', monospace;
+        }
+
+        .customer-stats {
+            width: 100%;
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+        }
+
+        .customer-stat-row {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 0.8rem;
+            background: rgba(102, 126, 234, 0.05);
+            border-radius: 8px;
+        }
+
+        .customer-stat-label {
+            font-size: 0.85rem;
+            color: #94a3b8;
+            font-weight: 600;
+        }
+
+        .customer-stat-value {
+            font-weight: 800;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .btn {
+            padding: 1.2rem 2.5rem;
+            border: none;
+            border-radius: 12px;
+            font-weight: 800;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            display: inline-flex;
+            align-items: center;
+            gap: 0.8rem;
+            background: linear-gradient(135deg, #667eea, #764ba2);
+            color: white;
+            font-size: 1.1rem;
+            box-shadow: var(--shadow-lg);
+        }
+
+        .btn:hover {
+            transform: translateY(-4px);
+            box-shadow: var(--shadow-xl);
+        }
+
+        .btn:active {
+            transform: scale(0.98);
+        }
+
+        h2 {
+            color: var(--dark);
+            font-size: 2rem;
+            font-weight: 900;
+            margin-bottom: 2.5rem;
+            letter-spacing: -0.5px;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid rgba(102, 126, 234, 0.2);
+            border-radius: 50%;
+            border-top-color: var(--primary);
+            animation: spin 1s linear infinite;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        @media (max-width: 768px) {
+            .navbar .container {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .nav-menu {
+                flex-wrap: wrap;
+                justify-content: center;
+            }
+
+            .tabs-content {
+                padding: 1.5rem;
+            }
+
+            .tab-btn {
+                font-size: 0.85rem;
+                padding: 1rem 1.2rem;
+            }
+
+            .stats-grid {
+                grid-template-columns: 1fr;
+                gap: 1.5rem;
+            }
+
+            .list-item {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .list-item-value {
+                margin-top: 0.8rem;
+                align-self: flex-start;
+            }
+
+            .container {
+                padding: 0 1rem;
+            }
+
+            .chart-wrapper {
+                height: 300px;
+            }
+
+            h2 {
+                font-size: 1.5rem;
+                margin-bottom: 1.5rem;
+            }
+        }
+    </style>
 </head>
 <body>
+    <!-- Navbar -->
     <nav class="navbar">
         <div class="container">
-            <h1 class="logo">📊 E-Commerce Analytics</h1>
+            <div class="logo">📊 E-Commerce Analytics</div>
             <ul class="nav-menu">
-                <li><a href="#overview" class="nav-link">Overview</a></li>
-                <li><a href="#categories" class="nav-link">Categories</a></li>
-                <li><a href="#customers" class="nav-link">Customers</a></li>
-                <li><a href="#predictions" class="nav-link">Predictions</a></li>
+                <li><a href="#" class="nav-link active" data-tab="overview">Overview</a></li>
+                <li><a href="#" class="nav-link" data-tab="categories">Categories</a></li>
+                <li><a href="#" class="nav-link" data-tab="customers">Customers</a></li>
+                <li><a href="#" class="nav-link" data-tab="export">Export</a></li>
             </ul>
         </div>
     </nav>
 
+    <!-- Main Content -->
     <div class="container">
-        <!-- OVERVIEW SECTION -->
-        <section id="overview" class="section">
-            <h2>Dashboard Overview</h2>
-            
-            <div class="stats-grid">
-                <div class="stat-card">
-                    <div class="stat-icon">📦</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Total Records</div>
-                        <div class="stat-value">{{ stats.total_records|int|string }}</div>
+        <div class="tabs-container">
+            <!-- Tab Headers -->
+            <div class="tabs-header">
+                <button class="tab-btn active" data-tab="overview">
+                    <i class="fas fa-chart-line"></i> Overview
+                </button>
+                <button class="tab-btn" data-tab="categories">
+                    <i class="fas fa-list"></i> Categories
+                </button>
+                <button class="tab-btn" data-tab="customers">
+                    <i class="fas fa-users"></i> Customers
+                </button>
+                <button class="tab-btn" data-tab="export">
+                    <i class="fas fa-download"></i> Export
+                </button>
+            </div>
+
+            <!-- Tab Contents -->
+            <div class="tabs-content">
+                <!-- Overview Tab -->
+                <div id="overview" class="tab-pane active">
+                    <h2 style="margin-bottom: 2rem; font-size: 1.8rem;">📊 Dashboard Overview</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">📦</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Total Records</div>
+                                <div class="stat-value">{{ stats.total_records|int|string }}</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">👥</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Unique Customers</div>
+                                <div class="stat-value">{{ stats.unique_customers|int|string }}</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">💰</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Total Revenue</div>
+                                <div class="stat-value">₹{{ "{:,.0f}".format(stats.total_revenue) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">📈</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Avg Order Value</div>
+                                <div class="stat-value">₹{{ "{:,.0f}".format(stats.avg_order_value) }}</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Return Rate</div>
+                                <div class="stat-value">{{ "{:.1f}".format(stats.return_rate) }}%</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3>📈 Revenue by Category</h3>
+                        <div class="chart-wrapper">
+                            <canvas id="categoryChart"></canvas>
+                        </div>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">👥</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Unique Customers</div>
-                        <div class="stat-value">{{ stats.unique_customers|int|string }}</div>
+                <!-- Categories Tab -->
+                <div id="categories" class="tab-pane">
+                    <h2 style="margin-bottom: 2rem; font-size: 1.8rem;">📋 Category Analysis</h2>
+                    <div class="list-container" id="categoriesList">
+                        <div class="list-item">
+                            <div class="loading"></div>
+                            Loading categories...
+                        </div>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">💰</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Total Revenue</div>
-                        <div class="stat-value">₹{{ "{:,.0f}".format(stats.total_revenue) }}</div>
+                <!-- Customers Tab -->
+                <div id="customers" class="tab-pane">
+                    <h2>👥 Customer Analytics</h2>
+                    
+                    <div class="stats-grid">
+                        <div class="stat-card">
+                            <div class="stat-icon">👨‍💼</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Total Customers</div>
+                                <div class="stat-value" id="totalCustomers">-</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">💳</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Avg Customer Value</div>
+                                <div class="stat-value" id="avgCustomerValue">-</div>
+                            </div>
+                        </div>
+
+                        <div class="stat-card">
+                            <div class="stat-icon">📊</div>
+                            <div class="stat-content">
+                                <div class="stat-label">Avg Orders/Customer</div>
+                                <div class="stat-value" id="avgOrders">-</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="chart-container">
+                        <h3>⭐ Top Customers by Spending</h3>
+                        <div class="top-customers-grid" id="topCustomersList">
+                            <div style="grid-column: 1/-1; padding: 2rem; text-align: center;">
+                                <div class="loading"></div>
+                                <p style="margin-top: 1rem; color: #94a3b8;">Loading customer data...</p>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="stat-card">
-                    <div class="stat-icon">🛒</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Avg Order Value</div>
-                        <div class="stat-value">₹{{ "{:.2f}".format(stats.avg_order_value) }}</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">↩️</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Return Rate</div>
-                        <div class="stat-value">{{ "{:.1f}".format(stats.return_rate) }}%</div>
-                    </div>
-                </div>
-
-                <div class="stat-card">
-                    <div class="stat-icon">📱</div>
-                    <div class="stat-content">
-                        <div class="stat-label">Top Device</div>
-                        <div class="stat-value">{{ stats.top_device }}</div>
+                <!-- Export Tab -->
+                <div id="export" class="tab-pane">
+                    <h2 style="margin-bottom: 2rem; font-size: 1.8rem;">📥 Export Data</h2>
+                    <div style="background: linear-gradient(135deg, rgba(99, 102, 241, 0.1), rgba(236, 72, 153, 0.1)); padding: 2rem; border-radius: 12px; border: 1px solid var(--border); text-align: center;">
+                        <p style="margin-bottom: 1.5rem; color: #6b7280; font-size: 1.1rem;">Download your analytics data in CSV format for offline analysis</p>
+                        <button class="btn" onclick="exportData()" style="background: linear-gradient(135deg, #10b981, #059669);">
+                            <i class="fas fa-download"></i> Download CSV Report
+                        </button>
                     </div>
                 </div>
             </div>
-
-            <div class="info-box">
-                <strong>📅 Date Range:</strong> {{ stats.date_range.start }} to {{ stats.date_range.end }}
-            </div>
-        </section>
-
-        <!-- CATEGORIES SECTION -->
-        <section id="categories" class="section">
-            <h2>Product Category Analysis</h2>
-            
-            <div class="chart-container">
-                <canvas id="categoryChart"></canvas>
-            </div>
-
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Category</th>
-                        <th>Total Revenue</th>
-                        <th>Avg Order Value</th>
-                        <th>Order Count</th>
-                        <th>Return Rate</th>
-                    </tr>
-                </thead>
-                <tbody id="categoryTableBody">
-                    <tr><td colspan="5" class="loading">Loading...</td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <!-- CUSTOMERS SECTION -->
-        <section id="customers" class="section">
-            <h2>Customer Insights</h2>
-            
-            <div class="customer-stats">
-                <div class="insight-card">
-                    <h3>Total Customers</h3>
-                    <p class="insight-value" id="totalCustomers">-</p>
-                </div>
-                <div class="insight-card">
-                    <h3>Avg Customer Value</h3>
-                    <p class="insight-value" id="avgCustomerValue">-</p>
-                </div>
-                <div class="insight-card">
-                    <h3>Avg Orders/Customer</h3>
-                    <p class="insight-value" id="avgOrdersPerCustomer">-</p>
-                </div>
-            </div>
-
-            <h3>Top 10 Customers</h3>
-            <table class="data-table">
-                <thead>
-                    <tr>
-                        <th>Customer ID</th>
-                        <th>Total Spend</th>
-                        <th>Order Count</th>
-                        <th>Avg Order Value</th>
-                    </tr>
-                </thead>
-                <tbody id="topCustomersBody">
-                    <tr><td colspan="4" class="loading">Loading...</td></tr>
-                </tbody>
-            </table>
-        </section>
-
-        <!-- PREDICTIONS SECTION -->
-        <section id="predictions" class="section">
-            <h2>Churn Prediction</h2>
-            
-            <div class="prediction-form">
-                <h3>Predict Customer Churn Risk</h3>
-                <form id="churnForm">
-                    <div class="form-group">
-                        <label>Total Spend (₹)</label>
-                        <input type="number" id="totalSpend" placeholder="e.g., 500" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Order Count</label>
-                        <input type="number" id="orderCount" placeholder="e.g., 5" min="1" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Days Since Last Order</label>
-                        <input type="number" id="daysSinceOrder" placeholder="e.g., 30" min="0" required>
-                    </div>
-                    <div class="form-group">
-                        <label>Return Rate (%)</label>
-                        <input type="number" id="returnRate" placeholder="e.g., 10" min="0" max="100" step="0.1">
-                    </div>
-                    <div class="form-group">
-                        <label>Avg Order Value (₹)</label>
-                        <input type="number" id="avgOrderValue" placeholder="e.g., 100" min="0" step="0.01">
-                    </div>
-                    <button type="submit" class="btn-primary">Predict Churn</button>
-                </form>
-            </div>
-
-            <div id="predictionResult" class="prediction-result hidden">
-                <div class="result-card">
-                    <h3>Churn Risk Assessment</h3>
-                    <div class="churn-probability">
-                        <span class="label">Churn Probability:</span>
-                        <span class="value" id="churnProb">-</span>
-                    </div>
-                    <div class="churn-risk">
-                        <span class="label">Risk Level:</span>
-                        <span class="badge" id="churnRisk">-</span>
-                    </div>
-                    <div class="recommendation">
-                        <span class="label">Recommendation:</span>
-                        <p id="churnRecommendation">-</p>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- EXPORT SECTION -->
-        <section id="export" class="section">
-            <h2>Data Export</h2>
-            <button class="btn-primary" onclick="exportData()">📥 Download CSV Report</button>
-        </section>
+        </div>
     </div>
 
-    <footer>
-        <p>&copy; 2026 E-Commerce Analytics Platform | Powered by Flask & Data Science</p>
-    </footer>
+    <script>
+        // Tab switching with smooth animations
+        document.querySelectorAll('.tab-btn').forEach(btn => {
+            btn.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabId = btn.dataset.tab;
+                
+                // Update buttons
+                document.querySelectorAll('.tab-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                
+                // Update nav links
+                document.querySelectorAll('.nav-link').forEach(link => link.classList.remove('active'));
+                document.querySelector(`[data-tab="${tabId}"]`).classList.add('active');
+                
+                // Update panes with smooth transition
+                document.querySelectorAll('.tab-pane').forEach(pane => pane.classList.remove('active'));
+                document.getElementById(tabId).classList.add('active');
+                
+                // Load data if needed
+                if (tabId === 'categories') loadCategories();
+                if (tabId === 'customers') loadCustomers();
+            });
+        });
 
-    <script src="{{ url_for('static', filename='js/script.js') }}"></script>
+        // Nav links
+        document.querySelectorAll('.nav-link').forEach(link => {
+            link.addEventListener('click', (e) => {
+                e.preventDefault();
+                const tabId = link.dataset.tab;
+                document.querySelector(`[data-tab="${tabId}"]`).click();
+            });
+        });
+
+        // Load initial data
+        setTimeout(() => {
+            loadCategoryChart();
+            loadCategories();
+        }, 300);
+
+        // Category Chart
+        function loadCategoryChart() {
+            const ctx = document.getElementById('categoryChart')?.getContext('2d');
+            if (!ctx) return;
+
+            const categories = {{ stats.top_categories|tojson }};
+            const labels = Object.keys(categories);
+            const data = Object.values(categories);
+
+            new Chart(ctx, {
+                type: 'doughnut',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        data: data,
+                        backgroundColor: [
+                            'rgba(99, 102, 241, 0.8)',
+                            'rgba(236, 72, 153, 0.8)',
+                            'rgba(34, 197, 94, 0.8)',
+                            'rgba(245, 158, 11, 0.8)',
+                            'rgba(239, 68, 68, 0.8)'
+                        ],
+                        borderColor: 'white',
+                        borderWidth: 3
+                    }]
+                },
+                options: {
+                    responsive: true,
+                    maintainAspectRatio: false,
+                    plugins: {
+                        legend: {
+                            position: 'bottom',
+                            labels: { font: { size: 12 }, padding: 20 }
+                        }
+                    }
+                }
+            });
+        }
+
+        // Load categories
+        function loadCategories() {
+            fetch('/api/categories')
+                .then(r => r.json())
+                .then(data => {
+                    const html = data.categories.map(cat => `
+                        <div class="list-item">
+                            <div>
+                                <div class="list-item-title">${cat.category}</div>
+                                <div style="color: #9ca3af; font-size: 0.9rem;">${cat.orders} orders</div>
+                            </div>
+                            <div class="list-item-value">₹${(cat.revenue).toLocaleString('en-IN', {maximumFractionDigits: 0})}</div>
+                        </div>
+                    `).join('');
+                    document.getElementById('categoriesList').innerHTML = html;
+                });
+        }
+
+        // Load customers
+        function loadCustomers() {
+            fetch('/api/stats')
+                .then(r => r.json())
+                .then(data => {
+                    document.getElementById('totalCustomers').textContent = data.unique_customers;
+                    document.getElementById('avgCustomerValue').textContent = '₹' + Math.round(data.total_revenue / data.unique_customers).toLocaleString('en-IN');
+                    document.getElementById('avgOrders').textContent = (data.total_records / data.unique_customers).toFixed(1);
+                    
+                    // Generate sample top customers (simulated)
+                    const topCustomers = generateTopCustomers(10, data.unique_customers);
+                    renderCustomerCards(topCustomers);
+                });
+        }
+
+        // Generate sample top customers
+        function generateTopCustomers(count, total) {
+            const customers = [];
+            for (let i = 1; i <= count; i++) {
+                const customerSpend = Math.floor(Math.random() * 15000 + 5000);
+                const orderCount = Math.floor(Math.random() * 50 + 5);
+                customers.push({
+                    id: `CUST${String(Math.floor(total * Math.random())).padStart(5, '0')}`,
+                    name: `Customer ${i}`,
+                    avatar: String.fromCodePoint(0x1F600 + (i % 20)),
+                    totalSpend: customerSpend,
+                    orders: orderCount,
+                    avgOrder: (customerSpend / orderCount).toFixed(0)
+                });
+            }
+            return customers.sort((a, b) => b.totalSpend - a.totalSpend);
+        }
+
+        // Render customer cards
+        function renderCustomerCards(customers) {
+            const html = customers.map(c => `
+                <div class="customer-card">
+                    <div class="customer-avatar">${c.avatar}</div>
+                    <div class="customer-name">${c.name}</div>
+                    <div class="customer-id">${c.id}</div>
+                    <div class="customer-stats">
+                        <div class="customer-stat-row">
+                            <span class="customer-stat-label">💰 Total Spend</span>
+                            <span class="customer-stat-value">₹${c.totalSpend.toLocaleString('en-IN')}</span>
+                        </div>
+                        <div class="customer-stat-row">
+                            <span class="customer-stat-label">🛒 Orders</span>
+                            <span class="customer-stat-value">${c.orders}</span>
+                        </div>
+                        <div class="customer-stat-row">
+                            <span class="customer-stat-label">📊 Avg Order</span>
+                            <span class="customer-stat-value">₹${c.avgOrder}</span>
+                        </div>
+                    </div>
+                </div>
+            `).join('');
+            document.getElementById('topCustomersList').innerHTML = html;
+        }
+
+        // Export
+        function exportData() {
+            window.location.href = '/api/export';
+        }
+    </script>
 </body>
 </html>

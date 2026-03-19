@@ -14,6 +14,16 @@ import io
 app = Flask(__name__)
 CORS(app)
 
+# Disable caching
+@app.after_request
+def no_cache(response):
+    response.cache_control.no_cache = True
+    response.cache_control.no_store = True
+    response.cache_control.must_revalidate = True
+    response.headers['Pragma'] = 'no-cache'
+    response.headers['Expires'] = '0'
+    return response
+
 # Logging
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger(__name__)
