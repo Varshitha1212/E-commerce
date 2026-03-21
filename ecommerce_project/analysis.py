@@ -42,7 +42,19 @@ print("=" * 60)
 # 1. LOAD & BASIC CHECKS
 # ══════════════════════════════════════════════════════════════
 print("\n[1/4] Loading data...")
-df = pd.read_csv('ecommerce_data.csv', parse_dates=['order_date'])
+df = pd.read_csv('data.csv', encoding='ISO-8859-1', parse_dates=['InvoiceDate'])
+df = df.dropna(subset=['CustomerID'])
+df = df[df['Quantity'] > 0]
+df['order_value'] = df['Quantity'] * df['UnitPrice']
+df = df.rename(columns={'CustomerID':'customer_id','InvoiceDate':'order_date','Description':'product_category'})
+df['returned'] = df['InvoiceNo'].astype(str).str.startswith('C').astype(int)
+df['session_count'] = 1
+df['pages_viewed'] = 1
+df['device'] = 'Desktop'
+df['payment_method'] = 'Card'
+df['discount_pct'] = 0
+df['age_group'] = '25-34'
+df['region'] = df['Country']
 print(f"  Shape       : {df.shape[0]:,} rows × {df.shape[1]} columns")
 print(f"  Date range  : {df['order_date'].min().date()} → {df['order_date'].max().date()}")
 print(f"  Nulls       : {df.isnull().sum().sum()}")
